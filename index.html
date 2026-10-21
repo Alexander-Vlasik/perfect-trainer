@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ Perfect System 1 — Тренажёр автоматизма</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="header">
+    <div class="brand">
+      <span class="brand-icon">⚡</span>
+      <div>
+        <h1 class="brand-title">Perfect System 1</h1>
+        <div class="brand-subtitle">Present & Past Perfect • Без зубрёжки, на уровне рефлексов</div>
+      </div>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-pill" title="Общий уровень автоматизма навыков">
+        <span>🧠 Мастерство:</span>
+        <span class="stat-val" id="val-mastery">0%</span>
+      </div>
+      <div class="stat-pill" title="Текущая серия чистых ответов подряд">
+        <span>🔥 Серия:</span>
+        <span class="stat-val" id="val-streak">0</span>
+      </div>
+      <div class="stat-pill" title="Всего решено">
+        <span>✅ Всего:</span>
+        <span class="stat-val" id="val-total">0</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-icon" id="btn-open-dashboard" title="Дашборд навыков Системы 1">📊</button>
+      <button class="btn-icon" id="btn-open-settings" title="Настройки и Экспорт">⚙️</button>
+      <button class="btn-icon" id="btn-toggle-theme" title="Сменить тему">🌓</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Mode Selector Navigation -->
+    <nav class="modes-nav" aria-label="Режимы тренировки">
+      <button class="mode-tab active" data-mode="cascades">
+        <span>🔄</span>
+        <div>
+          <div>Каскады</div>
+          <small style="font-weight: normal; font-size: 0.75rem; color: var(--text-dim);">Мутации контекста</small>
+        </div>
+      </button>
+
+      <button class="mode-tab" data-mode="builder">
+        <span>✍️</span>
+        <div>
+          <div>Конструктор RU→EN</div>
+          <small style="font-weight: normal; font-size: 0.75rem; color: var(--text-dim);">Генератор 5000+ фраз</small>
+        </div>
+      </button>
+
+      <button class="mode-tab" data-mode="xray">
+        <span>🔍</span>
+        <div>
+          <div>Рентген смысла</div>
+          <small style="font-weight: normal; font-size: 0.75rem; color: var(--text-dim);">EN → Реальность</small>
+        </div>
+      </button>
+
+      <button class="mode-tab" data-mode="bug_detector">
+        <span>🛠️</span>
+        <div>
+          <div>Детектор багов</div>
+          <small style="font-weight: normal; font-size: 0.75rem; color: var(--text-dim);">OK или Исправить</small>
+        </div>
+      </button>
+    </nav>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <div class="toggle-group">
+        <label class="toggle-switch">
+          <input type="checkbox" id="chk-focus-weak">
+          <span>🎯 Фокус на слабых тегах (SRS)</span>
+        </label>
+      </div>
+
+      <div class="toggle-group" id="verb-mode-container">
+        <label class="toggle-switch">
+          <input type="checkbox" id="chk-verb-only" checked>
+          <span>⚡ Только глагол (быстрый ввод)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Main Active Card Stage -->
+    <section class="stage-card" id="stage-card">
+      <div class="card-top">
+        <span class="mode-badge" id="badge-mode">Каскад</span>
+        <span class="tag-badge" id="badge-tag">Точка отсчёта</span>
+      </div>
+
+      <!-- Cascade History (Visible only in Cascade mode) -->
+      <div class="cascade-history" id="cascade-history" style="display: none;"></div>
+
+      <!-- Prompt Box -->
+      <div class="prompt-box">
+        <div class="mutation-label" id="label-mutation"></div>
+        <div class="ru-prompt" id="prompt-ru">Загрузка карточки...</div>
+        <div class="en-scaffold" id="prompt-scaffold">...</div>
+      </div>
+
+      <!-- Input Area for Text Mode -->
+      <div class="input-area" id="area-text-input">
+        <input 
+          type="text" 
+          class="text-input" 
+          id="user-text-input" 
+          placeholder="Введи ответ (например: have been waiting или I've been waiting)..." 
+          autocomplete="off" 
+          spellcheck="false"
+        >
+        <div class="inline-verdict-banner" id="inline-verdict-banner" style="display: none;"></div>
+      </div>
+
+      <!-- Options Area for Multiple Choice (X-Ray) -->
+      <div class="options-grid" id="area-options" style="display: none;"></div>
+
+      <!-- Bug Detector Buttons (Bug Mode) -->
+      <div class="bug-actions" id="area-bug-actions" style="display: none;">
+        <button class="btn-bug-ok" id="btn-bug-ok">✅ Предложение OK (без ошибок)</button>
+        <button class="btn-bug-fix" id="btn-bug-fix">🔧 В предложении ошибка</button>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-secondary" id="btn-hint" title="Показать подсказку к геометрии времени">💡 Подсказка</button>
+          <button class="btn-secondary" id="btn-skip" title="Перейти к следующей задаче">Пропустить</button>
+        </div>
+
+        <button class="btn-primary" id="btn-submit">
+          <span>Проверить</span>
+          <span style="font-size: 0.8rem; opacity: 0.8; font-weight: normal;">(Enter)</span>
+        </button>
+      </div>
+
+      <!-- Feedback Box (Hidden initially) -->
+      <div class="feedback-box" id="feedback-box" style="display: none;">
+        <div class="feedback-title" id="feedback-title"></div>
+        <div class="feedback-diagnosis" id="feedback-diagnosis"></div>
+        <div class="feedback-target" id="feedback-target"></div>
+        
+        <!-- Timeline Widget -->
+        <div class="timeline-container" id="timeline-container">
+          <svg class="timeline-svg" id="timeline-svg" viewBox="0 0 500 60"></svg>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+          <button class="btn-primary" id="btn-next">
+            <span>Дальше</span>
+            <span style="font-size: 0.8rem; opacity: 0.8; font-weight: normal;">(Enter)</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Skills Dashboard Modal -->
+  <div class="modal-overlay" id="modal-dashboard">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title">🧠 Карта автоматизма Системы 1</h2>
+        <button class="btn-icon" id="btn-close-dashboard">✕</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        В Систему 1 навык попадает не от спешки, а от длинных безошибочных серий (Slow is smooth, smooth is fast).
+      </p>
+
+      <div class="skills-grid" id="dashboard-skills-grid"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--surface-border); padding-top: 1rem;">
+        <button class="btn-secondary" id="btn-reset-progress" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);">
+          Сбросить прогресс
+        </button>
+        <button class="btn-primary" id="btn-close-dashboard-action">Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings & Export Modal -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ Настройки и Расшаривание</h2>
+        <button class="btn-icon" id="btn-close-settings">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inp-api-key">Ключ Google Gemini API (BYOK - опционально):</label>
+        <input type="password" class="form-input" id="inp-api-key" placeholder="AIzaSy...">
+        <small style="font-size: 0.75rem; color: var(--text-dim);">
+          Для генерации неограниченных новых каскадов под твои ошибки прямо в браузере. Если ключа нет — всё работает офлайн на встроенной базе из 5000+ вариаций.
+        </small>
+      </div>
+
+      <div class="form-group" style="border-top: 1px solid var(--surface-border); padding-top: 1rem;">
+        <label class="form-label">Экспорт / Импорт прогресса (JSON):</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-secondary" id="btn-export-json">📥 Скачать прогресс</button>
+          <button class="btn-secondary" id="btn-import-json">📤 Загрузить файл</button>
+          <input type="file" id="file-import-input" accept=".json" style="display: none;">
+        </div>
+      </div>
+
+      <div class="form-group" style="border-top: 1px solid var(--surface-border); padding-top: 1rem;">
+        <label class="form-label">Как расшарить этот тренажёр другу:</label>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Просто скопируй папку <code>perfect-trainer</code> на GitHub Pages, Vercel или Netlify. У каждого открывшего будет свой личный прогресс и статистика в браузере без всяких серверов!
+        </p>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--surface-border); padding-top: 1rem;">
+        <button class="btn-primary" id="btn-save-settings">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    English Grammar in Use (Murphy Units 1–18) • Perfect System 1 Trainer • Клавиши: <code>Enter</code> (проверить/дальше), <code>1–4</code> (выбор), <code>Esc</code> (закрыть окно)
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
