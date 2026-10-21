@@ -1,7 +1,22 @@
 /**
- * 30+ Semantic Scenarios (Blueprints) for the Parametric Grammar Generator.
- * Combines subjects, verbs, objects, and time frames into thousands of coherent variations.
+ * 31 Semantic Scenarios (Blueprints) for the Parametric Grammar Generator.
+ * Combines subjects, verbs, objects, and time frames into natural English & Russian phrases.
  */
+
+export const SUBJECTS_POOL = [
+  { en: 'I', enMid: 'I', ruNom: 'Я', ruMid: 'я', ruGen: 'меня', gender: 'i', presForm: '1s', thirdPerson: false },
+  { en: 'Sarah', enMid: 'Sarah', ruNom: 'Сара', ruMid: 'Сара', ruGen: 'Сары', gender: 'f', presForm: '3s', thirdPerson: true },
+  { en: 'We', enMid: 'we', ruNom: 'Мы', ruMid: 'мы', ruGen: 'нас', gender: 'pl', presForm: '1pl', thirdPerson: false },
+  { en: 'Alex', enMid: 'Alex', ruNom: 'Алекс', ruMid: 'Алекс', ruGen: 'Алекса', gender: 'm', presForm: '3s', thirdPerson: true },
+  { en: 'They', enMid: 'they', ruNom: 'Они', ruMid: 'они', ruGen: 'них', gender: 'pl', presForm: '3pl', thirdPerson: false },
+  { en: 'My brother', enMid: 'my brother', ruNom: 'Мой брат', ruMid: 'мой брат', ruGen: 'моего брата', gender: 'm', presForm: '3s', thirdPerson: true },
+  { en: 'The team', enMid: 'the team', ruNom: 'Команда', ruMid: 'команда', ruGen: 'команды', gender: 'f', presForm: '3s', thirdPerson: true }
+];
+
+export const PLURAL_SUBJECTS = [
+  { en: 'We', enMid: 'we', ruNom: 'Мы', ruMid: 'мы', ruGen: 'нас', gender: 'pl', presForm: '1pl', thirdPerson: false },
+  { en: 'They', enMid: 'they', ruNom: 'Они', ruMid: 'они', ruGen: 'них', gender: 'pl', presForm: '3pl', thirdPerson: false }
+];
 
 export const BLUEPRINTS = [
   // --- 1. Dynamic Activities ---
@@ -12,7 +27,7 @@ export const BLUEPRINTS = [
     objectEn: 'for the courier',
     objectRu: 'курьера',
     hint: 'wait for the courier',
-    compatibleFrames: ['open_duration', 'past_anchor_duration', 'closed_past_duration', 'present_count']
+    compatibleFrames: ['open_duration', 'past_anchor_duration', 'closed_past_duration']
   },
   {
     id: 'debug_server',
@@ -30,7 +45,7 @@ export const BLUEPRINTS = [
     objectEn: 'on the new release',
     objectRu: 'над новым релизом',
     hint: 'work on the new release',
-    compatibleFrames: ['open_duration', 'past_anchor_duration', 'closed_past_duration', 'present_since']
+    compatibleFrames: ['open_duration', 'present_since', 'past_anchor_duration', 'closed_past_duration']
   },
   {
     id: 'look_for_keys',
@@ -48,7 +63,7 @@ export const BLUEPRINTS = [
     objectEn: 'the office printer',
     objectRu: 'офисный принтер',
     hint: 'fix the office printer',
-    compatibleFrames: ['open_duration', 'past_anchor_duration', 'present_result', 'present_count']
+    compatibleFrames: ['open_duration', 'past_anchor_duration', 'present_result']
   },
   {
     id: 'learn_english',
@@ -66,7 +81,7 @@ export const BLUEPRINTS = [
     objectEn: 'the API documentation',
     objectRu: 'документацию к API',
     hint: 'read the API documentation',
-    compatibleFrames: ['open_duration', 'past_anchor_duration', 'present_count', 'present_result']
+    compatibleFrames: ['open_duration', 'past_anchor_duration', 'present_result']
   },
   {
     id: 'write_report',
@@ -75,14 +90,14 @@ export const BLUEPRINTS = [
     objectEn: 'the quarterly report',
     objectRu: 'квартальный отчёт',
     hint: 'write the quarterly report',
-    compatibleFrames: ['open_duration', 'past_anchor_duration', 'present_result', 'present_count']
+    compatibleFrames: ['open_duration', 'past_anchor_duration', 'present_result']
   },
   {
     id: 'drive_car',
     category: 'activity',
     verbKey: 'drive',
     objectEn: 'without any rest',
-    objectRu: 'без отдыха за рулём',
+    objectRu: 'без отдыха',
     hint: 'drive without any rest',
     compatibleFrames: ['open_duration', 'past_anchor_duration', 'closed_past_duration']
   },
@@ -108,9 +123,9 @@ export const BLUEPRINTS = [
     id: 'run_in_park',
     category: 'activity',
     verbKey: 'run',
-    objectEn: 'in the morning park',
-    objectRu: 'в утреннем парке',
-    hint: 'run in the morning park',
+    objectEn: 'in the park',
+    objectRu: 'в парке',
+    hint: 'run in the park',
     compatibleFrames: ['open_duration', 'past_anchor_duration', 'closed_past_duration']
   },
   {
@@ -124,12 +139,12 @@ export const BLUEPRINTS = [
   },
   {
     id: 'live_city',
-    category: 'activity',
+    category: 'activity_living',
     verbKey: 'live',
-    objectEn: 'in this neighborhood',
-    objectRu: 'в этом районе',
-    hint: 'live in this neighborhood',
-    compatibleFrames: ['open_duration', 'present_since', 'past_anchor_duration', 'closed_past_duration']
+    objectEn: 'in this city',
+    objectRu: 'в этом городе',
+    hint: 'live in this city',
+    compatibleFrames: ['open_duration', 'present_since', 'past_anchor_duration', 'closed_past_years']
   },
   {
     id: 'watch_series',
@@ -138,36 +153,38 @@ export const BLUEPRINTS = [
     objectEn: 'this detective show',
     objectRu: 'этот детективный сериал',
     hint: 'watch this detective show',
-    compatibleFrames: ['open_duration', 'present_count', 'past_anchor_duration']
+    compatibleFrames: ['open_duration', 'past_anchor_duration']
   },
 
   // --- 2. Stative Verbs (Lock Continuous!) ---
   {
     id: 'know_each_other',
-    category: 'stative',
+    category: 'stative_know',
     verbKey: 'know',
     objectEn: 'each other',
     objectRu: 'друг друга',
+    onlyPlural: true,
     hint: 'know each other',
-    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor', 'closed_past_duration']
+    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor', 'closed_past_years']
   },
   {
     id: 'have_laptop',
-    category: 'stative',
+    category: 'stative_have',
     verbKey: 'have_stative',
     objectEn: 'this laptop',
     objectRu: 'этот рабочий ноутбук',
     hint: 'have this laptop',
-    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor', 'closed_past_duration']
+    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor', 'closed_past_years']
   },
   {
     id: 'be_friends',
-    category: 'stative',
+    category: 'stative_friends',
     verbKey: 'be',
     objectEn: 'close friends',
     objectRu: 'близкими друзьями',
+    onlyPlural: true,
     hint: 'be close friends',
-    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor']
+    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor', 'closed_past_years']
   },
   {
     id: 'understand_problem',
@@ -180,30 +197,22 @@ export const BLUEPRINTS = [
   },
   {
     id: 'be_married',
-    category: 'stative',
+    category: 'stative_married',
     verbKey: 'be',
     objectEn: 'happily married',
     objectRu: 'в счастливом браке',
+    onlyPlural: true,
     hint: 'be happily married',
-    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor']
-  },
-  {
-    id: 'remember_details',
-    category: 'stative',
-    verbKey: 'remember',
-    objectEn: 'every single detail',
-    objectRu: 'каждую деталь',
-    hint: 'remember every single detail',
-    compatibleFrames: ['stative_open_duration', 'stative_past_anchor']
+    compatibleFrames: ['stative_open_duration', 'stative_since', 'stative_past_anchor', 'closed_past_years']
   },
 
-  // --- 3. Dynamic Have Expressions (Continuous & Perfects Allowed!) ---
+  // --- 3. Dynamic Have Expressions ---
   {
     id: 'have_lunch',
     category: 'have_idiom',
     verbKey: 'have_dynamic',
     objectEn: 'lunch with colleagues',
-    objectRu: 'обед с коллегами',
+    objectRu: 'с коллегами',
     hint: 'have lunch with colleagues',
     compatibleFrames: ['past_moment_in_progress', 'present_result', 'past_anchor_result', 'closed_past_duration']
   },
@@ -230,24 +239,15 @@ export const BLUEPRINTS = [
     category: 'have_idiom',
     verbKey: 'have_dynamic',
     objectEn: 'a short coffee break',
-    objectRu: 'короткий перерыв на кофе',
+    objectRu: 'перерыв на кофе',
     hint: 'have a short coffee break',
     compatibleFrames: ['past_moment_in_progress', 'present_result', 'past_anchor_result']
-  },
-  {
-    id: 'have_party',
-    category: 'have_idiom',
-    verbKey: 'have_dynamic',
-    objectEn: 'a birthday party',
-    objectRu: 'вечеринку в честь дня рождения',
-    hint: 'have a birthday party',
-    compatibleFrames: ['closed_past_duration', 'past_moment_in_progress', 'past_anchor_result']
   },
 
   // --- 4. Instant Results & Changes ---
   {
     id: 'lose_keys',
-    category: 'result',
+    category: 'result_keys',
     verbKey: 'lose',
     objectEn: 'the office keys',
     objectRu: 'ключи от офиса',
@@ -261,16 +261,7 @@ export const BLUEPRINTS = [
     objectEn: 'the right solution',
     objectRu: 'верное решение',
     hint: 'find the right solution',
-    compatibleFrames: ['present_result', 'past_anchor_result', 'closed_past_duration']
-  },
-  {
-    id: 'crash_database',
-    category: 'result',
-    verbKey: 'crash',
-    objectEn: 'completely',
-    objectRu: 'полностью',
-    hint: 'crash completely',
-    compatibleFrames: ['present_result', 'past_anchor_result', 'closed_past_duration']
+    compatibleFrames: ['present_result', 'past_anchor_result']
   },
   {
     id: 'send_proposal',
@@ -282,41 +273,60 @@ export const BLUEPRINTS = [
     compatibleFrames: ['present_result', 'past_anchor_result', 'present_count']
   },
   {
-    id: 'prices_fall',
+    id: 'break_phone',
     category: 'result',
+    verbKey: 'break',
+    objectEn: 'the smartphone screen',
+    objectRu: 'экран смартфона',
+    hint: 'break the smartphone screen',
+    compatibleFrames: ['present_result', 'past_anchor_result']
+  },
+  {
+    id: 'prices_fall',
+    category: 'result_event',
     verbKey: 'fall',
+    subjectOverride: { en: 'Prices', enMid: 'prices', ruNom: 'Цены', ruMid: 'цены', ruGen: 'цен', gender: 'pl', presForm: '3pl', thirdPerson: false },
     objectEn: 'significantly',
     objectRu: 'заметно',
-    hint: 'fall significantly',
-    compatibleFrames: ['present_result', 'past_anchor_result', 'closed_past_duration']
+    hint: 'prices fall significantly',
+    compatibleFrames: ['present_result', 'past_anchor_result', 'closed_past_event']
+  },
+  {
+    id: 'crash_database',
+    category: 'result_event',
+    verbKey: 'crash',
+    subjectOverride: { en: 'The database', enMid: 'the database', ruNom: 'База данных', ruMid: 'база данных', ruGen: 'базы данных', gender: 'f', presForm: '3s', thirdPerson: true },
+    objectEn: 'completely',
+    objectRu: 'полностью',
+    hint: 'the database crash completely',
+    compatibleFrames: ['present_result', 'past_anchor_result', 'closed_past_event']
+  },
+  {
+    id: 'system_fail',
+    category: 'result_event',
+    verbKey: 'fail',
+    subjectOverride: { en: 'The server', enMid: 'the server', ruNom: 'Сервер', ruMid: 'сервер', ruGen: 'сервера', gender: 'm', presForm: '3s', thirdPerson: true },
+    objectEn: 'unexpectedly',
+    objectRu: 'неожиданно',
+    hint: 'the server fail unexpectedly',
+    compatibleFrames: ['present_result', 'past_anchor_result', 'closed_past_event']
   }
 ];
 
-export const SUBJECTS_POOL = [
-  { en: 'I', ru: 'Я', isPlural: false, thirdPerson: false },
-  { en: 'Sarah', ru: 'Сара', isPlural: false, thirdPerson: true },
-  { en: 'We', ru: 'Мы', isPlural: true, thirdPerson: false },
-  { en: 'Alex', ru: 'Алекс', isPlural: false, thirdPerson: true },
-  { en: 'They', ru: 'Они', isPlural: true, thirdPerson: false },
-  { en: 'My brother', ru: 'Мой брат', isPlural: false, thirdPerson: true },
-  { en: 'The team', ru: 'Команда', isPlural: false, thirdPerson: true }
-];
-
 export const TIME_FRAMES = {
-  // Activity open duration -> Present Perfect Continuous
   open_duration: {
     tense: 'present_perfect_continuous',
     tag: 'anchor-present-vs-past',
     timeEn: 'for two hours already',
     timeRu: 'уже два часа',
     timePosition: 'end',
-    explanation: 'Камера сейчас: действие началось в прошлом и длится до настоящего момента. Нужен Present Perfect Continuous (have/has been doing).'
+    explanation: 'Камера сейчас: действие началось в прошлом и длится прямо в этот момент. Нужен Present Perfect Continuous (have/has been doing).'
   },
   present_since: {
     tense: 'present_perfect_continuous',
     tag: 'open-vs-closed-period',
     timeEn: 'since early morning',
-    timeRu: 'с самого раннего утра',
+    timeRu: 'с самого утра',
     timePosition: 'end',
     explanation: 'Открытый период: точка отсчёта since задаёт начало процесса, который продолжается прямо сейчас.'
   },
@@ -334,15 +344,34 @@ export const TIME_FRAMES = {
     tag: 'open-vs-closed-period',
     clauseEn: 'yesterday',
     clauseRu: 'вчера',
-    timeEn: 'for two hours and then stopped',
-    timeRu: 'два часа, а затем закончил(а/и)',
+    timeEn: 'for two hours and then left',
+    timeRu: 'два часа, а затем ушёл/ушла',
     explanation: 'Закрытый период в прошлом: вчерашнее действие полностью завершено и отрезано от настоящего. Нужен Past Simple.'
+  },
+  closed_past_years: {
+    tense: 'past_simple',
+    tag: 'open-vs-closed-period',
+    clauseEn: 'from 2015 to 2020',
+    clauseRu: 'с 2015 по 2020 год',
+    timeEn: 'from 2015 to 2020',
+    timeRu: 'с 2015 по 2020 год',
+    timePosition: 'end',
+    explanation: 'Отрезок времени строго зафиксирован в прошлом (from 2015 to 2020) и закрыт. Нужен Past Simple.'
+  },
+  closed_past_event: {
+    tense: 'past_simple',
+    tag: 'open-vs-closed-period',
+    clauseEn: 'yesterday',
+    clauseRu: 'вчера',
+    timeEn: 'yesterday',
+    timeRu: 'вчера',
+    explanation: 'Закрытое разовое событие в прошлом со словом yesterday. Нужен Past Simple.'
   },
   present_count: {
     tense: 'present_perfect_simple',
     tag: 'process-vs-count',
     timeEn: 'three times today',
-    timeRu: 'уже три раза за сегодня',
+    timeRu: 'сегодня уже три раза',
     timePosition: 'end',
     explanation: 'Счётчик количества раз (three times) фиксирует накопленный итог, а не процесс! Continuous запрещён, нужен Present Perfect Simple (have/has done).'
   },
@@ -366,8 +395,8 @@ export const TIME_FRAMES = {
   past_anchor_result: {
     tense: 'past_perfect_simple',
     tag: 'anchor-present-vs-past',
-    clauseEn: 'by the time we got there',
-    clauseRu: 'к тому моменту, как мы туда добрались',
+    clauseEn: 'by the time we arrived',
+    clauseRu: 'к тому моменту, как мы пришли',
     timeEn: 'already',
     timeRu: 'уже',
     explanation: 'Действие завершилось ДО точки в прошлом. Past Perfect Simple (had done).'
@@ -400,8 +429,8 @@ export const TIME_FRAMES = {
   stative_past_anchor: {
     tense: 'past_perfect_simple',
     tag: 'stative-lock',
-    clauseEn: 'when they decided to start a company in 2021',
-    clauseRu: 'когда они решили основать компанию в 2021 году',
+    clauseEn: 'when they started the company in 2021',
+    clauseRu: 'когда они основали компанию в 2021 году',
     timeEn: 'for five years',
     timeRu: 'уже пять лет',
     explanation: 'Состояние длилось до момента в прошлом: для stative verb нужен Past Perfect Simple (had known/had had/had been).'
@@ -412,7 +441,7 @@ export const TIME_FRAMES = {
     tense: 'present_perfect_simple',
     tag: 'anchor-present-vs-past',
     timeEn: 'and cannot get in right now',
-    timeRu: 'и не может / не могу попасть внутрь прямо сейчас',
+    timeRu: 'и прямо сейчас не может попасть внутрь',
     explanation: 'Результат сейчас: ключи потеряны, прямо сейчас дверь заперта. Present Perfect Simple (have/has lost).'
   },
   past_anchor_result_lost: {
@@ -425,8 +454,10 @@ export const TIME_FRAMES = {
   closed_past_lost: {
     tense: 'past_simple',
     tag: 'open-vs-closed-period',
-    timeEn: 'last week, but found them the next day',
-    timeRu: 'на прошлой неделе, но нашёл(а/и) их на следующий день',
+    clauseEn: 'last week',
+    clauseRu: 'На прошлой неделе',
+    timeEn: 'but found them the next day',
+    timeRu: 'но нашёл их на следующий день',
     explanation: 'Закрытый эпизод в прошлом: ключи уже нашлись, проблема в прошлом. Past Simple (lost).'
   }
 };

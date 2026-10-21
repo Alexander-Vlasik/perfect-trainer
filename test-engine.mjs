@@ -38,14 +38,36 @@ if (!conj3.verbPhrase.includes('had broken')) {
 }
 
 // 3. Generator test
-console.log('Testing generator batch of 100 cards...');
-for (let i = 0; i < 100; i++) {
+console.log('Testing generator batch of 500 cards for natural phrasing & grammar...');
+for (let i = 0; i < 500; i++) {
   const card = CardGenerator.generateCard();
   if (!card.targetSentence || !card.targetVerbPhrase || !card.russianPrompt) {
     throw new Error(`Card generation returned incomplete card: ${JSON.stringify(card)}`);
   }
+  if (card.russianPrompt.includes('undefined')) {
+    throw new Error(`Russian prompt contains undefined: "${card.russianPrompt}" in card ${JSON.stringify(card)}`);
+  }
+  if (card.targetSentence.includes('undefined')) {
+    throw new Error(`English sentence contains undefined: "${card.targetSentence}" in card ${JSON.stringify(card)}`);
+  }
+  if (card.russianPrompt.includes('(а/и)') || card.russianPrompt.includes('ушёл/ушла')) {
+    throw new Error(`Russian prompt contains robotic slash inflections: "${card.russianPrompt}"`);
+  }
+  // Check plural-only restriction
+  if (['know_each_other', 'be_friends', 'be_married'].includes(card.verbKey) || card.russianPrompt.includes('друг друга') || card.russianPrompt.includes('браке')) {
+    if (['I', 'Sarah', 'Alex', 'My brother', 'The team'].includes(card.subject)) {
+      throw new Error(`Singular subject "${card.subject}" used in plural-only scenario: "${card.russianPrompt}"`);
+    }
+  }
+  // Check mid-sentence capitalization bugs in English (e.g. "When ..., They" or "Yesterday The team")
+  if (/(?:yesterday|when|by the time|week|arrived,)\s+(?:They|We|The team|The database|Prices)\b/i.test(card.targetSentence)) {
+    const match = card.targetSentence.match(/(?:yesterday|when|by the time|week|arrived,)\s+(?:They|We|The team|The database|Prices)\b/i);
+    if (match && /[A-Z]/.test(match[0].split(/\s+/)[1][0])) {
+      throw new Error(`Mid-sentence capitalization bug in English: "${card.targetSentence}"`);
+    }
+  }
 }
-console.log('100 cards generated cleanly!');
+console.log('500 cards generated and validated cleanly with zero defects!');
 
 // 4. Checker tests
 console.log('Testing checker diagnostics...');
