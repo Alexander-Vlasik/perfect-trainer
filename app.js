@@ -9,10 +9,14 @@ import { BUG_TASKS } from './data/bug-detector.js';
 class App {
   constructor() {
     this.srs = new SRSManager();
-    this.activeMode = 'cascades'; // cascades | builder | xray | bug_detector
+
+    // Restore saved mode or default to cascades
+    const savedMode = localStorage.getItem('perfect_trainer_active_mode');
+    this.activeMode = savedMode || 'cascades'; // cascades | builder | xray | bug_detector
     
-    // State for Cascade mode
-    this.currentCascadeIndex = 0;
+    // State for Cascade mode (restores saved cascade index so you don't repeat the same scene)
+    const savedCascadeIdx = parseInt(localStorage.getItem('perfect_trainer_cascade_idx'), 10);
+    this.currentCascadeIndex = !isNaN(savedCascadeIdx) ? (savedCascadeIdx % CASCADES.length) : 0;
     this.currentCascadeStepIndex = 0;
     this.cascadeStepResults = [];
     
@@ -30,6 +34,9 @@ class App {
       valTotal: document.getElementById('val-total'),
       badgeMode: document.getElementById('badge-mode'),
       badgeTag: document.getElementById('badge-tag'),
+      cascadeSelectorWrapper: document.getElementById('cascade-selector-wrapper'),
+      selectCascade: document.getElementById('select-cascade'),
+      btnRandomCascade: document.getElementById('btn-random-cascade'),
       cascadeHistory: document.getElementById('cascade-history'),
       labelMutation: document.getElementById('label-mutation'),
       promptRu: document.getElementById('prompt-ru'),
@@ -74,9 +81,56 @@ class App {
   }
 
   init() {
+    this.initCascadeSelector();
     this.setupListeners();
+    this.syncActiveModeTab();
     this.updateHeaderStats();
     this.loadCard();
+  }
+
+  initCascadeSelector() {
+    if (!this.dom.selectCascade) return;
+    this.dom.selectCascade.innerHTML = '';
+    CASCADES.forEach((casc, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = `${idx + 1}. ${casc.title}`;
+      this.dom.selectCascade.appendChild(opt);
+    });
+    this.dom.selectCascade.value = this.currentCascadeIndex % CASCADES.length;
+
+    this.dom.selectCascade.addEventListener('change', (e) => {
+      this.currentCascadeIndex = parseInt(e.target.value, 10);
+      this.currentCascadeStepIndex = 0;
+      this.cascadeStepResults = [];
+      localStorage.setItem('perfect_trainer_cascade_idx', this.currentCascadeIndex);
+      this.loadCard();
+    });
+
+    if (this.dom.btnRandomCascade) {
+      this.dom.btnRandomCascade.addEventListener('click', () => {
+        let nextIdx = Math.floor(Math.random() * CASCADES.length);
+        if (nextIdx === this.currentCascadeIndex && CASCADES.length > 1) {
+          nextIdx = (nextIdx + 1) % CASCADES.length;
+        }
+        this.currentCascadeIndex = nextIdx;
+        this.currentCascadeStepIndex = 0;
+        this.cascadeStepResults = [];
+        this.dom.selectCascade.value = nextIdx;
+        localStorage.setItem('perfect_trainer_cascade_idx', this.currentCascadeIndex);
+        this.loadCard();
+      });
+    }
+  }
+
+  syncActiveModeTab() {
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+      if (tab.dataset.mode === this.activeMode) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
   }
 
   setupListeners() {
@@ -86,6 +140,7 @@ class App {
         document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         this.activeMode = tab.dataset.mode;
+        localStorage.setItem('perfect_trainer_active_mode', this.activeMode);
         this.loadCard();
       });
     });
@@ -247,6 +302,18 @@ class App {
       this.dom.verbModeContainer.style.display = 'flex';
     } else {
       this.dom.verbModeContainer.style.display = 'none';
+    }
+
+    // Show/hide cascade selector
+    if (this.dom.cascadeSelectorWrapper) {
+      if (this.activeMode === 'cascades') {
+        this.dom.cascadeSelectorWrapper.style.display = 'flex';
+        if (this.dom.selectCascade) {
+          this.dom.selectCascade.value = this.currentCascadeIndex % CASCADES.length;
+        }
+      } else {
+        this.dom.cascadeSelectorWrapper.style.display = 'none';
+      }
     }
 
     // Determine target tag if focusing on weak points
@@ -628,10 +695,14 @@ class App {
       if (this.currentCascadeStepIndex < cascade.steps.length - 1) {
         this.currentCascadeStepIndex += 1;
       } else {
-        // Cascade finished, move to next cascade
-        this.currentCascadeIndex += 1;
+        // Cascade finished, move to next cascade and persist
+        this.currentCascadeIndex = (this.currentCascadeIndex + 1) % CASCADES.length;
         this.currentCascadeStepIndex = 0;
         this.cascadeStepResults = [];
+        localStorage.setItem('perfect_trainer_cascade_idx', this.currentCascadeIndex);
+        if (this.dom.selectCascade) {
+          this.dom.selectCascade.value = this.currentCascadeIndex;
+        }
       }
     }
     this.loadCard();

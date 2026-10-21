@@ -98,8 +98,14 @@
     <!-- Main Active Card Stage -->
     <section class="stage-card" id="stage-card">
       <div class="card-top">
-        <span class="mode-badge" id="badge-mode">Каскад</span>
-        <span class="tag-badge" id="badge-tag">Точка отсчёта</span>
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <span class="mode-badge" id="badge-mode">Каскад</span>
+          <span class="tag-badge" id="badge-tag">Точка отсчёта</span>
+        </div>
+        <div class="cascade-selector-wrapper" id="cascade-selector-wrapper" style="display: none;">
+          <select id="select-cascade" class="cascade-select" title="Выбрать сценарий"></select>
+          <button class="btn-icon-small" id="btn-random-cascade" title="Случайный сценарий">🎲</button>
+        </div>
       </div>
 
       <!-- Cascade History (Visible only in Cascade mode) -->
