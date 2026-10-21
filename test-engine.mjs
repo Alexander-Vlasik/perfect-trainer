@@ -3,6 +3,7 @@ import { BLUEPRINTS } from './data/blueprints.js';
 import { CASCADES } from './data/cascades.js';
 import { XRAY_TASKS } from './data/xray.js';
 import { BUG_TASKS } from './data/bug-detector.js';
+import { TRIGGER_TASKS } from './data/triggers.js';
 import { Conjugator } from './engine/conjugator.js';
 import { CardGenerator } from './engine/generator.js';
 import { Checker } from './engine/checker.js';
@@ -10,12 +11,13 @@ import { Checker } from './engine/checker.js';
 console.log('🧪 Starting Perfect System 1 self-tests...');
 
 // 1. Data Integrity checks
-console.log(`Checking data: ${Object.keys(VERBS).length} verbs, ${BLUEPRINTS.length} blueprints, ${CASCADES.length} cascades, ${XRAY_TASKS.length} xray tasks, ${BUG_TASKS.length} bug tasks.`);
+console.log(`Checking data: ${Object.keys(VERBS).length} verbs, ${BLUEPRINTS.length} blueprints, ${CASCADES.length} cascades, ${XRAY_TASKS.length} xray tasks, ${BUG_TASKS.length} bug tasks, ${TRIGGER_TASKS.length} trigger tasks.`);
 
 if (BLUEPRINTS.length < 25) throw new Error('Too few blueprints!');
 if (CASCADES.length < 10) throw new Error('Too few cascades!');
 if (XRAY_TASKS.length < 10) throw new Error('Too few xray tasks!');
 if (BUG_TASKS.length < 10) throw new Error('Too few bug tasks!');
+if (TRIGGER_TASKS.length < 20) throw new Error('Too few trigger tasks!');
 
 // 2. Conjugator tests
 console.log('Testing conjugator...');

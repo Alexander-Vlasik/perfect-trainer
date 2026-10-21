@@ -76,10 +76,33 @@
           <small style="font-weight: normal; font-size: 0.75rem; color: var(--text-dim);">OK или Исправить</small>
         </div>
       </button>
+
+      <button class="mode-tab" data-mode="triggers">
+        <span>⚡</span>
+        <div>
+          <div>Блиц-триггеры</div>
+          <small style="font-weight: normal; font-size: 0.75rem; color: var(--text-dim);">Маркер → Время</small>
+        </div>
+      </button>
     </nav>
 
     <!-- Controls Bar -->
     <div class="controls-bar">
+      <div class="control-select-group" id="marker-filter-container">
+        <label for="select-marker-filter" class="control-label">
+          <span>🏷️ Маркер:</span>
+        </label>
+        <select id="select-marker-filter" class="marker-select" title="Фильтровать по ключевым словам-маркерам">
+          <option value="all">Все маркеры (микс)</option>
+          <option value="since_for">since / for (Начало и длительность)</option>
+          <option value="first_time">It's the first time / It was... (Порядковые)</option>
+          <option value="just_already_yet">just / already / yet (Свежие факты)</option>
+          <option value="count_process">so far / all day / count (Итог / Процесс)</option>
+          <option value="by_the_time">by the time / before (Предпрошедшее)</option>
+          <option value="closed_past">yesterday / ago (Блокираторы: Past Simple)</option>
+        </select>
+      </div>
+
       <div class="toggle-group">
         <label class="toggle-switch">
           <input type="checkbox" id="chk-focus-weak">

@@ -6,22 +6,41 @@ export class CardGenerator {
   /**
    * Generates a single coherent, naturally translated grammar practice card.
    * If targetTag is provided, prioritizes blueprints and timeframes matching that tag.
+   * If markerCategory is provided (e.g. 'since_for', 'first_time'), filters for that marker.
    */
-  static generateCard(targetTag = null) {
-    // 1. Pick a blueprint
+  static generateCard(targetTag = null, markerCategory = null) {
+    // 1. Filter blueprints
     let eligibleBlueprints = BLUEPRINTS;
+    
+    if (markerCategory && markerCategory !== 'all') {
+      const markerFiltered = eligibleBlueprints.filter(b =>
+        b.compatibleFrames.some(f => TIME_FRAMES[f] && TIME_FRAMES[f].markerCategory === markerCategory)
+      );
+      if (markerFiltered.length > 0) {
+        eligibleBlueprints = markerFiltered;
+      }
+    }
+
     if (targetTag) {
-      const filtered = BLUEPRINTS.filter(b => 
+      const tagFiltered = eligibleBlueprints.filter(b => 
         b.compatibleFrames.some(f => TIME_FRAMES[f] && TIME_FRAMES[f].tag === targetTag)
       );
-      if (filtered.length > 0) {
-        eligibleBlueprints = filtered;
+      if (tagFiltered.length > 0) {
+        eligibleBlueprints = tagFiltered;
       }
     }
     const bp = eligibleBlueprints[Math.floor(Math.random() * eligibleBlueprints.length)];
 
     // 2. Pick a compatible time frame
     let eligibleFrames = bp.compatibleFrames.map(f => ({ frameKey: f, ...TIME_FRAMES[f] })).filter(f => f.tense);
+    
+    if (markerCategory && markerCategory !== 'all') {
+      const catFiltered = eligibleFrames.filter(f => f.markerCategory === markerCategory);
+      if (catFiltered.length > 0) {
+        eligibleFrames = catFiltered;
+      }
+    }
+
     if (targetTag) {
       const tagFiltered = eligibleFrames.filter(f => f.tag === targetTag);
       if (tagFiltered.length > 0) {
@@ -46,13 +65,17 @@ export class CardGenerator {
     let targetSentence = '';
     const targetVerbPhrase = conjugation.verbPhrase;
 
-    if (frame.clauseEn && frame.clauseEn.startsWith('when')) {
+    if (frame.prefixEn) {
+      targetSentence = `${frame.prefixEn} ${subject.enMid} ${conjugation.verbPhrase} ${bp.objectEn}.`;
+    } else if (frame.clauseEn && frame.clauseEn.startsWith('when')) {
       const timePart = frame.timeEn ? ` ${frame.timeEn}` : '';
       targetSentence = `${this.capitalize(frame.clauseEn)}, ${subject.enMid} ${conjugation.verbPhrase} ${bp.objectEn}${timePart}.`;
     } else if (frame.clauseEn && frame.clauseEn.startsWith('before')) {
       targetSentence = `${subject.en} ${conjugation.verbPhrase} ${bp.objectEn} ${frame.timeEn || ''} ${frame.clauseEn}.`;
     } else if (frame.clauseEn && frame.clauseEn.startsWith('by the time')) {
       targetSentence = `${this.capitalize(frame.clauseEn)}, ${subject.enMid} ${conjugation.verbPhrase} ${bp.objectEn}.`;
+    } else if (frame.frameKey === 'frame_by_deadline') {
+      targetSentence = `By 5 PM yesterday, ${subject.enMid} ${conjugation.verbPhrase} ${bp.objectEn}.`;
     } else if (frame.frameKey === 'closed_past_duration') {
       targetSentence = `Yesterday ${subject.enMid} ${conjugation.verbPhrase} ${bp.objectEn} for two hours and then left.`;
     } else if (frame.frameKey === 'closed_past_event') {
@@ -65,6 +88,8 @@ export class CardGenerator {
       targetSentence = `${subject.en} ${conjugation.verbPhrase} ${bp.objectEn}, so the door was locked when we arrived.`;
     } else if (frame.frameKey === 'closed_past_years') {
       targetSentence = `${subject.en} ${conjugation.verbPhrase} ${bp.objectEn} from 2015 to 2020.`;
+    } else if (frame.frameKey === 'frame_ago') {
+      targetSentence = `${subject.en} ${conjugation.verbPhrase} ${bp.objectEn} two hours ago.`;
     } else {
       const endPart = frame.timePosition === 'end' && frame.timeEn ? ` ${frame.timeEn}` : '';
       targetSentence = `${subject.en} ${conjugation.verbPhrase} ${bp.objectEn}${endPart}.`;
@@ -92,6 +117,8 @@ export class CardGenerator {
       subject: subject.en,
       verbKey: bp.verbKey,
       tense: frame.tense,
+      markerCategory: frame.markerCategory || 'since_for',
+      markerLabel: this.getMarkerLabel(frame),
       tags: Array.from(new Set(tags)),
       russianPrompt: russianPrompt.trim(),
       englishHint: bp.hint,
@@ -104,6 +131,18 @@ export class CardGenerator {
         aspect: frame.tense.includes('continuous') ? 'continuous' : 'simple'
       }
     };
+  }
+
+  static getMarkerLabel(frame) {
+    if (frame.prefixEn) return `Маркер: ${frame.prefixEn}`;
+    if (frame.frameKey === 'frame_just') return 'Маркер: just (только что)';
+    if (frame.frameKey === 'frame_so_far') return 'Маркер: so far (итог)';
+    if (frame.frameKey === 'frame_all_day') return 'Маркер: all day (процесс)';
+    if (frame.frameKey === 'frame_by_deadline') return 'Маркер: by 5 PM yesterday';
+    if (frame.frameKey === 'frame_ago') return 'Маркер-блокиратор: ago';
+    if (frame.timeEn) return `Маркер: ${frame.timeEn}`;
+    if (frame.clauseEn) return `Маркер: ${frame.clauseEn}`;
+    return 'Маркер времени';
   }
 
   /**
@@ -125,6 +164,11 @@ export class CardGenerator {
 
     const presKey = subject.presForm || (isPlural ? '3pl' : '3s');
     const presVerb = v.ruPres ? (v.ruPres[presKey] || v.ruPres['3s'] || '') : '';
+
+    // Special: First time formula
+    if (frame.prefixRu) {
+      return `${frame.prefixRu} ${subjMid} ${pastPerf} ${objRu}.`;
+    }
 
     // A. Special: Stative Have (have_laptop)
     if (bp.id === 'have_laptop') {
@@ -195,8 +239,8 @@ export class CardGenerator {
       if (frame.frameKey === 'past_moment_in_progress') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} ${pastLunchImp} с коллегами.`;
       }
-      if (frame.frameKey === 'present_result') {
-        return `${subjNom} уже ${pastLunchPerf} с коллегами.`;
+      if (frame.frameKey === 'present_result' || frame.frameKey === 'frame_just') {
+        return `${subjNom} ${frame.frameKey === 'frame_just' ? 'только что' : 'уже'} ${pastLunchPerf} с коллегами.`;
       }
       if (frame.frameKey === 'past_anchor_result') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} уже ${pastLunchPerf} с коллегами.`;
@@ -204,6 +248,9 @@ export class CardGenerator {
       if (frame.frameKey === 'closed_past_duration') {
         const leftWord = isPlural ? 'ушли' : (g === 'f' ? 'ушла' : 'ушёл');
         return `Вчера ${subjMid} ${pastLunchImp} с коллегами два часа, а затем ${leftWord}.`;
+      }
+      if (frame.frameKey === 'frame_ago') {
+        return `${subjNom} ${pastLunchPerf} с коллегами два часа назад.`;
       }
     }
 
@@ -213,8 +260,8 @@ export class CardGenerator {
       if (frame.frameKey === 'past_moment_in_progress') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} ${pastShowerImp} тёплый душ.`;
       }
-      if (frame.frameKey === 'present_result') {
-        return `${subjNom} уже ${pastShowerPerf} тёплый душ.`;
+      if (frame.frameKey === 'present_result' || frame.frameKey === 'frame_just') {
+        return `${subjNom} ${frame.frameKey === 'frame_just' ? 'только что' : 'уже'} ${pastShowerPerf} тёплый душ.`;
       }
       if (frame.frameKey === 'past_anchor_result') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} уже ${pastShowerPerf} тёплый душ.`;
@@ -233,8 +280,11 @@ export class CardGenerator {
       if (frame.frameKey === 'past_anchor_duration') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} ${pastMeetImp} срочную встречу уже два часа.`;
       }
-      if (frame.frameKey === 'present_result') {
-        return `${subjNom} уже ${pastMeetPerf} срочную встречу.`;
+      if (frame.frameKey === 'present_result' || frame.frameKey === 'frame_just') {
+        return `${subjNom} ${frame.frameKey === 'frame_just' ? 'только что' : 'уже'} ${pastMeetPerf} срочную встречу.`;
+      }
+      if (frame.frameKey === 'frame_by_deadline') {
+        return `К 17:00 вчера ${subjMid} уже ${pastMeetPerf} срочную встречу.`;
       }
     }
 
@@ -244,8 +294,8 @@ export class CardGenerator {
       if (frame.frameKey === 'past_moment_in_progress') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} ${pastBreakImp} на перерыве на кофе.`;
       }
-      if (frame.frameKey === 'present_result') {
-        return `${subjNom} уже ${pastBreakPerf} перерыв на кофе.`;
+      if (frame.frameKey === 'present_result' || frame.frameKey === 'frame_just') {
+        return `${subjNom} ${frame.frameKey === 'frame_just' ? 'только что' : 'уже'} ${pastBreakPerf} перерыв на кофе.`;
       }
       if (frame.frameKey === 'past_anchor_result') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} уже ${pastBreakPerf} перерыв на кофе.`;
@@ -255,7 +305,10 @@ export class CardGenerator {
     // F. Lost keys
     if (bp.id === 'lose_keys') {
       if (frame.frameKey === 'present_result_lost') {
-        const cannotEnter = isPlural ? 'не могут попасть внутрь' : (g === 'i' ? 'не могу попасть внутрь' : 'не может попасть внутрь');
+        let cannotEnter = 'не может попасть внутрь';
+        if (subject.presForm === '1s') cannotEnter = 'не могу попасть внутрь';
+        else if (subject.presForm === '1pl') cannotEnter = 'не можем попасть внутрь';
+        else if (subject.presForm === '3pl') cannotEnter = 'не могут попасть внутрь';
         return `${subjNom} ${pastPerf} ключи от офиса и прямо сейчас ${cannotEnter}.`;
       }
       if (frame.frameKey === 'past_anchor_result_lost') {
@@ -272,6 +325,9 @@ export class CardGenerator {
       if (frame.frameKey === 'present_result') {
         return `${subjNom} уже ${objRu} ${pastPerf}.`;
       }
+      if (frame.frameKey === 'frame_just') {
+        return `${subjNom} только что ${objRu} ${pastPerf}.`;
+      }
       if (frame.frameKey === 'past_anchor_result') {
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} уже ${objRu} ${pastPerf}.`;
       }
@@ -286,6 +342,9 @@ export class CardGenerator {
       case 'present_since':
         return `${subjNom} ${presVerb} ${objRu} ${frame.timeRu}.`;
 
+      case 'frame_all_day':
+        return `${subjNom} ${presVerb} ${objRu} весь день.`;
+
       case 'past_anchor_duration':
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} ${pastImp} ${objRu} ${frame.timeRu}.`;
 
@@ -298,11 +357,20 @@ export class CardGenerator {
       case 'past_anchor_count':
         return `${subjNom} уже три раза ${pastImp} ${objRu} ${frame.clauseRu}.`;
 
+      case 'frame_so_far':
+        return `${subjNom} к данному моменту уже ${pastPerf} ${objRu}.`;
+
       case 'present_result':
         return `${subjNom} уже ${pastPerf} ${objRu}.`;
 
+      case 'frame_just':
+        return `${subjNom} только что ${pastPerf} ${objRu}.`;
+
       case 'past_anchor_result':
         return `${this.capitalize(frame.clauseRu)}, ${subjMid} уже ${pastPerf} ${objRu}.`;
+
+      case 'frame_by_deadline':
+        return `К 17:00 вчера ${subjMid} уже ${pastPerf} ${objRu}.`;
 
       case 'closed_past_duration': {
         const leftWord = isPlural ? 'ушли' : (g === 'f' ? 'ушла' : 'ушёл');
@@ -314,6 +382,9 @@ export class CardGenerator {
 
       case 'closed_past_event':
         return `Вчера ${subjMid} ${pastPerf} ${objRu}.`;
+
+      case 'frame_ago':
+        return `${subjNom} ${pastPerf} ${objRu} два часа назад.`;
 
       default:
         return `${subjNom} ${presVerb} ${objRu} ${frame.timeRu || ''}.`;

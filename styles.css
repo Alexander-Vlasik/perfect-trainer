@@ -198,6 +198,41 @@ body {
   gap: 0.5rem;
 }
 
+.control-select-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.control-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.marker-select {
+  background: var(--bg-color);
+  border: 1px solid var(--surface-border);
+  color: var(--text-main);
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  max-width: 260px;
+}
+
+.marker-select:focus,
+.marker-select:hover {
+  border-color: var(--primary);
+}
+
 .toggle-switch {
   cursor: pointer;
   display: flex;

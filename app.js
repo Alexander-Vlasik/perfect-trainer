@@ -5,6 +5,7 @@ import { AIGenerator } from './engine/ai-generator.js';
 import { CASCADES } from './data/cascades.js';
 import { XRAY_TASKS } from './data/xray.js';
 import { BUG_TASKS } from './data/bug-detector.js';
+import { TRIGGER_TASKS } from './data/triggers.js';
 
 class App {
   constructor() {
@@ -26,6 +27,7 @@ class App {
     this.feedbackShownAt = 0;
     this.verbOnlyMode = true;
     this.focusWeak = false;
+    this.activeMarkerFilter = localStorage.getItem('perfect_trainer_marker_filter') || 'all';
 
     // DOM Elements
     this.dom = {
@@ -34,6 +36,8 @@ class App {
       valTotal: document.getElementById('val-total'),
       badgeMode: document.getElementById('badge-mode'),
       badgeTag: document.getElementById('badge-tag'),
+      selectMarkerFilter: document.getElementById('select-marker-filter'),
+      markerFilterContainer: document.getElementById('marker-filter-container'),
       cascadeSelectorWrapper: document.getElementById('cascade-selector-wrapper'),
       selectCascade: document.getElementById('select-cascade'),
       btnRandomCascade: document.getElementById('btn-random-cascade'),
@@ -82,10 +86,21 @@ class App {
 
   init() {
     this.initCascadeSelector();
+    this.initMarkerFilter();
     this.setupListeners();
     this.syncActiveModeTab();
     this.updateHeaderStats();
     this.loadCard();
+  }
+
+  initMarkerFilter() {
+    if (!this.dom.selectMarkerFilter) return;
+    this.dom.selectMarkerFilter.value = this.activeMarkerFilter;
+    this.dom.selectMarkerFilter.addEventListener('change', (e) => {
+      this.activeMarkerFilter = e.target.value;
+      localStorage.setItem('perfect_trainer_marker_filter', this.activeMarkerFilter);
+      this.loadCard();
+    });
   }
 
   initCascadeSelector() {
@@ -252,7 +267,7 @@ class App {
     }
 
     // Number keys 1-4 in multiple choice modes
-    if (!this.isFeedbackVisible && (this.activeMode === 'xray' || (this.activeMode === 'bug_detector' && this.currentCard.isFixPhase))) {
+    if (!this.isFeedbackVisible && (this.activeMode === 'xray' || this.activeMode === 'triggers' || (this.activeMode === 'bug_detector' && this.currentCard?.isFixPhase))) {
       const num = parseInt(e.key, 10);
       if (num >= 1 && num <= 4) {
         const optBtn = document.querySelector(`.option-btn[data-index="${num - 1}"]`);
@@ -273,7 +288,7 @@ class App {
           return;
         }
         this.handleNext();
-      } else if (this.activeMode !== 'xray' && !this.currentCard?.isFixPhase) {
+      } else if (this.activeMode !== 'xray' && this.activeMode !== 'triggers' && !this.currentCard?.isFixPhase) {
         this.handleSubmit();
       }
     }
@@ -336,6 +351,9 @@ class App {
       case 'bug_detector':
         this.loadBugDetectorCard();
         break;
+      case 'triggers':
+        this.loadTriggersCard();
+        break;
     }
 
     this.updateBadges();
@@ -396,9 +414,10 @@ class App {
 
   loadBuilderCard(targetTag) {
     this.dom.cascadeHistory.style.display = 'none';
-    this.currentCard = CardGenerator.generateCard(targetTag);
+    this.currentCard = CardGenerator.generateCard(targetTag, this.activeMarkerFilter);
 
-    this.dom.labelMutation.textContent = '🎲 Параметрический генератор фраз';
+    const markerBadge = this.currentCard.markerLabel ? ` [${this.currentCard.markerLabel}]` : '';
+    this.dom.labelMutation.textContent = `🎲 Конструктор фраз${markerBadge}`;
     this.dom.promptRu.textContent = this.currentCard.russianPrompt;
 
     this.dom.areaTextInput.style.display = 'block';
@@ -469,12 +488,83 @@ class App {
     this.dom.areaBugActions.style.display = 'grid';
   }
 
+  loadTriggersCard() {
+    this.dom.cascadeHistory.style.display = 'none';
+    this.dom.btnSubmit.style.display = 'none'; // Multiple choice handles click
+
+    let pool = TRIGGER_TASKS;
+    if (this.activeMarkerFilter && this.activeMarkerFilter !== 'all') {
+      const filtered = TRIGGER_TASKS.filter(t => t.markerCategory === this.activeMarkerFilter);
+      if (filtered.length > 0) pool = filtered;
+    }
+
+    if (this.focusWeak) {
+      const weakList = this.srs.getWeakestTags(1);
+      if (weakList.length > 0) {
+        const tagFiltered = pool.filter(t => t.tag === weakList[0]);
+        if (tagFiltered.length > 0) pool = tagFiltered;
+      }
+    }
+
+    const task = pool[Math.floor(Math.random() * pool.length)];
+
+    this.currentCard = {
+      mode: 'triggers',
+      task: task,
+      tags: [task.tag],
+      explanation: task.ruleExplanation,
+      timeline: task.timeline
+    };
+
+    this.dom.labelMutation.textContent = `⚡ Блиц-триггер: ${task.markerLabel}`;
+    this.dom.promptRu.textContent = task.contextRu;
+    this.dom.promptScaffold.innerHTML = `<span style="font-size: 1.12rem; font-weight: 600; color: var(--text-main);">${task.sentence.replace('_____', '<span style="border-bottom: 2px dashed var(--primary); padding: 0 0.5rem; color: var(--primary);">[ ? ]</span>')}</span>`;
+
+    this.dom.areaTextInput.style.display = 'none';
+    this.dom.areaBugActions.style.display = 'none';
+    this.dom.areaOptions.style.display = 'flex';
+    this.dom.areaOptions.innerHTML = '';
+
+    task.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.dataset.index = idx;
+      btn.innerHTML = `<span class="option-num">${idx + 1}</span> <span>${opt.text}</span>`;
+      btn.addEventListener('click', () => this.handleTriggerAnswer(idx));
+      this.dom.areaOptions.appendChild(btn);
+    });
+  }
+
+  handleTriggerAnswer(choiceIndex) {
+    if (this.isFeedbackVisible) return;
+    const task = this.currentCard.task;
+    const selectedOption = task.options[choiceIndex];
+    const isCorrect = selectedOption.isCorrect;
+
+    // Visual highlight on options
+    document.querySelectorAll('.option-btn').forEach((btn, idx) => {
+      btn.disabled = true;
+      if (task.options[idx].isCorrect) {
+        btn.classList.add('correct');
+      } else if (idx === choiceIndex) {
+        btn.classList.add('incorrect');
+      }
+    });
+
+    const diagnosis = selectedOption.feedback;
+    const correctOpt = task.options.find(o => o.isCorrect);
+    const targetSentence = task.sentence.replace('_____', correctOpt.text);
+
+    this.showFeedback(isCorrect, diagnosis, targetSentence, task.tag, selectedOption.text);
+  }
+
   updateBadges() {
     const modeNames = {
       cascades: '🔄 Каскады',
       builder: '✍️ Конструктор',
       xray: '🔍 Рентген',
-      bug_detector: '🛠️ Детектор багов'
+      bug_detector: '🛠️ Детектор багов',
+      triggers: '⚡ Блиц-триггеры'
     };
     this.dom.badgeMode.textContent = modeNames[this.activeMode] || 'Тренировка';
 
@@ -487,7 +577,7 @@ class App {
   }
 
   updateScaffoldDisplay() {
-    if (this.activeMode === 'xray') return;
+    if (this.activeMode === 'xray' || this.activeMode === 'triggers') return;
 
     if (this.activeMode === 'cascades' || this.activeMode === 'builder') {
       const hint = this.currentCard?.englishHint || '';
