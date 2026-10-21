@@ -8,6 +8,15 @@ import { BUG_TASKS } from './data/bug-detector.js';
 import { TRIGGER_TASKS } from './data/triggers.js';
 
 class App {
+  static shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
   constructor() {
     this.srs = new SRSManager();
 
@@ -437,9 +446,17 @@ class App {
     }
     const task = taskPool[Math.floor(Math.random() * taskPool.length)];
 
+    // Shuffle options so correct answer is randomly distributed across 1-4
+    const indexedOptions = task.options.map((optText, origIdx) => ({
+      text: optText,
+      isCorrect: origIdx === task.correctIndex
+    }));
+    const shuffledOptions = App.shuffleArray(indexedOptions);
+
     this.currentCard = {
       mode: 'xray',
       task: task,
+      shuffledOptions: shuffledOptions,
       tags: task.tags,
       explanation: task.explanation,
       timeline: { anchor: 'present', aspect: 'simple' }
@@ -454,11 +471,11 @@ class App {
     this.dom.areaOptions.style.display = 'flex';
     this.dom.areaOptions.innerHTML = '';
 
-    task.options.forEach((opt, idx) => {
+    shuffledOptions.forEach((opt, idx) => {
       const btn = document.createElement('button');
       btn.className = 'option-btn';
       btn.dataset.index = idx;
-      btn.innerHTML = `<span class="option-num">${idx + 1}</span> <span>${opt}</span>`;
+      btn.innerHTML = `<span class="option-num">${idx + 1}</span> <span>${opt.text}</span>`;
       btn.addEventListener('click', () => this.handleXRayAnswer(idx));
       this.dom.areaOptions.appendChild(btn);
     });
@@ -508,9 +525,13 @@ class App {
 
     const task = pool[Math.floor(Math.random() * pool.length)];
 
+    // Shuffle options so correct answer is randomly distributed across 1-4
+    const shuffledOptions = App.shuffleArray(task.options);
+
     this.currentCard = {
       mode: 'triggers',
       task: task,
+      shuffledOptions: shuffledOptions,
       tags: [task.tag],
       explanation: task.ruleExplanation,
       timeline: task.timeline
@@ -525,7 +546,7 @@ class App {
     this.dom.areaOptions.style.display = 'flex';
     this.dom.areaOptions.innerHTML = '';
 
-    task.options.forEach((opt, idx) => {
+    shuffledOptions.forEach((opt, idx) => {
       const btn = document.createElement('button');
       btn.className = 'option-btn';
       btn.dataset.index = idx;
@@ -538,13 +559,14 @@ class App {
   handleTriggerAnswer(choiceIndex) {
     if (this.isFeedbackVisible) return;
     const task = this.currentCard.task;
-    const selectedOption = task.options[choiceIndex];
+    const shuffledOptions = this.currentCard.shuffledOptions;
+    const selectedOption = shuffledOptions[choiceIndex];
     const isCorrect = selectedOption.isCorrect;
 
     // Visual highlight on options
     document.querySelectorAll('.option-btn').forEach((btn, idx) => {
       btn.disabled = true;
-      if (task.options[idx].isCorrect) {
+      if (shuffledOptions[idx].isCorrect) {
         btn.classList.add('correct');
       } else if (idx === choiceIndex) {
         btn.classList.add('incorrect');
@@ -552,7 +574,7 @@ class App {
     });
 
     const diagnosis = selectedOption.feedback;
-    const correctOpt = task.options.find(o => o.isCorrect);
+    const correctOpt = shuffledOptions.find(o => o.isCorrect);
     const targetSentence = task.sentence.replace('_____', correctOpt.text);
 
     this.showFeedback(isCorrect, diagnosis, targetSentence, task.tag, selectedOption.text);
@@ -607,11 +629,25 @@ class App {
   handleXRayAnswer(selectedIndex) {
     if (this.isFeedbackVisible) return;
     const task = this.currentCard.task;
-    const isCorrect = selectedIndex === task.correctIndex;
+    const shuffledOptions = this.currentCard.shuffledOptions;
+    const selectedOption = shuffledOptions[selectedIndex];
+    const isCorrect = selectedOption.isCorrect;
+
+    // Visual highlight on options
+    document.querySelectorAll('.option-btn').forEach((btn, idx) => {
+      btn.disabled = true;
+      if (shuffledOptions[idx].isCorrect) {
+        btn.classList.add('correct');
+      } else if (idx === selectedIndex) {
+        btn.classList.add('incorrect');
+      }
+    });
+
+    const correctOpt = shuffledOptions.find(o => o.isCorrect);
     const diag = isCorrect
       ? '✅ Абсолютно точно! Ты безупречно считал(а) хронологию и ракурс ситуации.'
-      : `❌ Не совсем так. Верный ответ: "${task.options[task.correctIndex]}".`;
-    this.showFeedback(isCorrect, diag, task.options[task.correctIndex], this.currentCard.tags[0], `Вариант ${selectedIndex + 1}`);
+      : `❌ Не совсем так. Верный ответ: "${correctOpt.text}".`;
+    this.showFeedback(isCorrect, diag, correctOpt.text, this.currentCard.tags[0], `Вариант ${selectedIndex + 1}`);
   }
 
   handleBugAnswer(userClaimedOk) {
